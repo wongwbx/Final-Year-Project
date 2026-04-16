@@ -1,0 +1,58 @@
+import socket
+import json
+import sounddevice as sd
+from vosk import Model, KaldiRecognizer
+
+UDP_IP = "192.168.0.20"  
+UDP_PORT = 5005
+
+MODEL_PATH = "vosk-model-small-en-us-0.15"
+SAMPLE_RATE = 16000
+
+# Allowed commands
+COMMANDS = [
+    "forward",
+    "left",
+    "right",
+    "stop",
+    "room a",
+    "room b"
+]
+
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+
+model = Model(MODEL_PATH)
+recognizer = KaldiRecognizer(model, SAMPLE_RATE)
+
+print(" Listening for voice commands...")
+
+
+def callback(indata, frames, time, status):
+    if status:
+        print(status)
+
+    if recognizer.AcceptWaveform(indata):
+        result = json.loads(recognizer.Result())
+        text = result.get("text", "").lower().strip()
+
+        if text:
+            print(f" Recognized: {text}")
+
+            for cmd in COMMANDS:
+                if cmd in text:
+                    print(f" Sending command: {cmd}")
+                    sock.sendto(cmd.encode(), (UDP_IP, UDP_PORT))
+                    break
+
+with sd.RawInputStream(
+    samplerate=SAMPLE_RATE,
+    blocksize=8000,
+    dtype="int16",
+    channels=1,
+    callback=callback
+):
+    print(" System Ready. Speak now...")
+    while True:
+        pass
