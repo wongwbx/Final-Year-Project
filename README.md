@@ -34,3 +34,18 @@ Voice Input → ReSpeaker → Vosk → UDP → ROS2 → TurtleBot3
 
 ---
 
+Operation:
+- Run ROS2 system (On turtlebot)
+export TURLTEBOT3_MODEL=burger
+ros2 launch turtlebot3_navigation2 navigation2.launch.py
+
+-Run ROS2 code
+cd ~/ros2_ws
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+ros2 run voice_cmd_vel udp_cmd_vel_node
+
+- Run Respeaker code
+cd ~/mic_hat
+source venv/bin/activate
+python3 ~/mic_hat/voice_to_udp.py
